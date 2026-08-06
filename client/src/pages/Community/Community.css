@@ -1,0 +1,20 @@
+.community-post-card {
+  background-color: #ffffff;
+  border-radius: 0.85rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.community-post-card:hover {
+  border-color: #cbd5e1;
+}
+
+.author-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  object-fit: cover;
+  border: 2px solid #a7f3d0;
+}

@@ -1,0 +1,4 @@
+/* Authentication Page Styles */
+.auth-card-backdrop {
+  backdrop-filter: blur(16px);
+}

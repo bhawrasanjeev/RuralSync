@@ -1,0 +1,162 @@
+.sidebar {
+  width: 16rem;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  height: calc(100vh - 4rem);
+  position: sticky;
+  top: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
+  transition: all 0.3s ease-in-out;
+  z-index: 30;
+}
+
+.sidebar-nav-section {
+  padding: 1rem 0.75rem;
+}
+
+.sidebar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-divider {
+  margin: 1.25rem 0;
+  border: none;
+  border-top: 1px solid #f1f5f9;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin-bottom: 0.125rem;
+  position: relative;
+}
+
+.sidebar-link:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.sidebar-link.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 4px;
+  background-color: #2563eb;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.sidebar-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.sidebar-link:hover .sidebar-icon,
+.sidebar-link.active .sidebar-icon {
+  color: #2563eb;
+}
+
+.sidebar-badge {
+  margin-left: auto;
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.sidebar-admin-box {
+  margin: 1.5rem 0.75rem 0.75rem;
+  padding: 0.85rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.75rem;
+}
+
+.helpline-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.helpline-desc {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.helpline-phone-link {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  margin-top: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.helpline-phone-link:hover {
+  text-decoration: underline;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    display: none;
+  }
+  .sidebar.sidebar-open {
+    display: flex;
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    bottom: 0;
+    height: calc(100vh - 4rem);
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+    z-index: 45;
+  }
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    top: 4rem;
+    background-color: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 40;
+  }
+}

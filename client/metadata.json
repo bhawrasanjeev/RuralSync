@@ -1,0 +1,6 @@
+{
+  "name": "RuralSync - Digital Panchayat Platform",
+  "description": "Comprehensive digital Panchayat and rural citizen services portal featuring scheme applications, grievance tracking, Gram Sabha community forums, MGNREGA job directory, emergency SOS, and Sarpanch admin control panel.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

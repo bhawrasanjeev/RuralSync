@@ -1,0 +1,22 @@
+.complaint-card {
+  background-color: #ffffff;
+  border-radius: 0.85rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.complaint-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.timeline-step-line {
+  position: absolute;
+  top: 1.25rem;
+  left: 0.75rem;
+  bottom: 0;
+  width: 2px;
+  background-color: #e2e8f0;
+}
