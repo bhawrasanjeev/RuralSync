@@ -9,7 +9,7 @@ const noticeSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['Circular', 'Tender', 'Ration Distribution', 'Health Camp', 'Governance Notice', 'General Notice'],
+      enum: ['Circular', 'Tender', 'Ration Distribution', 'Health Camp', 'Health Alert', 'Governance Notice', 'General Notice'],
       default: 'Circular',
     },
     summary: {

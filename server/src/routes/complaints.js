@@ -35,9 +35,23 @@ router.post('/', (req, res) => {
     dateSubmitted: new Date().toISOString().split('T')[0],
     status: 'Submitted',
     assignedTo: 'Ward Officer & Panchayat Jal Mitr',
-    priority: 'Medium',
+    priority: req.body.priority || 'Medium',
     upvotes: 1,
     userUpvoted: true,
+    timeline: [
+      {
+        stage: 'Grievance Registered',
+        date: new Date().toLocaleString(),
+        description: 'Grievance submitted via RuralSync portal with GPS verification.',
+        completed: true,
+      },
+      {
+        stage: 'Ward Officer Review',
+        date: 'Pending',
+        description: 'Awaiting Sarpanch / Ward Member assignment.',
+        completed: false,
+      },
+    ],
   };
 
   complaints.unshift(newComplaint);

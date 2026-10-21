@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { mockSchemes } from '../../data/mockData';
 import { Modal } from '../../components/Modal/Modal';
 import { StatusBadge } from '../../components/StatusBadge/StatusBadge';
@@ -43,6 +44,26 @@ export const SchemesPage = () => {
 
   const categories = ['All', 'Agriculture', 'Housing', 'Health', 'Education', 'Financial', 'Employment'];
 
+  // Fetch schemes from backend API
+  useEffect(() => {
+    const fetchSchemes = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/schemes`);
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.data || data;
+          if (Array.isArray(list) && list.length > 0) {
+            setSchemes(list);
+          }
+        }
+      } catch (err) {
+        console.warn('Backend schemes fetch failed, using fallback data:', err.message);
+      }
+    };
+
+    fetchSchemes();
+  }, []);
+
   const filteredSchemes = schemes.filter((s) => {
     const matchesCat = selectedCategory === 'All' || s.category === selectedCategory;
     const matchesQuery =
@@ -52,9 +73,22 @@ export const SchemesPage = () => {
     return matchesCat && matchesQuery;
   });
 
-  const handleApplySubmit = (e) => {
+  const handleApplySubmit = async (e) => {
     e.preventDefault();
     if (!applyModalScheme) return;
+
+    try {
+      await fetch(`${API_BASE_URL}/api/schemes/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          schemeId: applyModalScheme.id,
+          applicantName,
+        }),
+      });
+    } catch (err) {
+      console.warn('Backend scheme application sync failed, applying locally:', err.message);
+    }
 
     // Update state to reflect applied
     setSchemes((prev) =>

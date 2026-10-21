@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 const AuthContext = createContext(null);
 
@@ -30,15 +31,49 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  // Login handler with Backend API & Mock Fallback
+  // Verify stored JWT session with backend on initialization
+  useEffect(() => {
+    const verifyToken = async () => {
+      const storedToken = localStorage.getItem('ruralsync_token');
+      if (!storedToken) return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${storedToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const payload = data.data || data;
+          if (payload.user) {
+            setUser(payload.user);
+          }
+        } else if (response.status === 401) {
+          // Stored token is invalid or expired
+          console.warn('[Auth] Stored session expired or invalid. Clearing authentication state.');
+          setToken(null);
+          setUser(null);
+          localStorage.removeItem('ruralsync_token');
+          localStorage.removeItem('ruralsync_user');
+        }
+      } catch (err) {
+        // Offline or network error: retain local cache without wiping
+        console.warn('[Auth] Could not reach backend to verify token:', err.message);
+      }
+    };
+
+    verifyToken();
+  }, []);
+
+  // Login handler with Backend API
   const login = async (mobile, password) => {
     setIsLoading(true);
     setAuthError(null);
 
     try {
-      // Try backend Express API endpoint
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile, password }),
@@ -47,16 +82,24 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        const errorMsg = data.message || (data.errors && data.errors[0]?.message) || 'Invalid mobile number/Aadhaar or password';
+        setAuthError(errorMsg);
+        setIsLoading(false);
+        return { success: false, message: errorMsg };
       }
 
-      setToken(data.token);
-      setUser(data.user);
+      // Handle both ApiResponse envelope and flat response
+      const payload = data.data || data;
+      const authToken = payload.token || data.token;
+      const userProfile = payload.user || data.user;
+
+      setToken(authToken);
+      setUser(userProfile);
       setIsLoading(false);
-      return { success: true, user: data.user };
+      return { success: true, user: userProfile };
     } catch (err) {
-      // Fallback offline mock JWT authentication if local express server is not running
-      console.warn('Backend connection error, falling back to mock JWT login:', err.message);
+      // Offline fallback strictly when network/server is completely unreachable
+      console.warn('Backend connection error:', err.message);
 
       if (mobile === '9876543210' && password === 'password123') {
         const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlVTRVItMTAxIiwibmFtZSI6IlN1bml0YSBTaGFybWEiLCJyb2xlIjoiQ2l0aXplbiIsImlhdCI6MTY3MjUxMjAwMH0.mock_signature';
@@ -77,27 +120,12 @@ export const AuthProvider = ({ children }) => {
         setUser(mockUser);
         setIsLoading(false);
         return { success: true, user: mockUser };
-      } else {
-        // Create dynamic user login for demo input
-        const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ mobile, name: 'Citizen User', role: 'Citizen' }))}.mock_sig`;
-        const mockUser = {
-          id: `USR-${Math.floor(100 + Math.random() * 900)}`,
-          name: 'Citizen User',
-          mobile: mobile,
-          villageName: 'Gram Panchayat Chandanpura',
-          wardNo: '1',
-          role: 'Citizen',
-          aadhaar: '9988-7766-5544',
-          rationCardNo: 'MP-SEC-112233',
-          landHoldingAcres: '1.0',
-          familyMembers: 3,
-        };
-
-        setToken(mockToken);
-        setUser(mockUser);
-        setIsLoading(false);
-        return { success: true, user: mockUser };
       }
+
+      const netError = 'Cannot connect to RuralSync server. Please ensure the backend is running on port 5001.';
+      setAuthError(netError);
+      setIsLoading(false);
+      return { success: false, message: netError };
     }
   };
 
@@ -107,8 +135,7 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
 
     try {
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-      const response = await fetch(`${API_BASE}/api/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -117,38 +144,33 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        const errorMsg = data.message || (data.errors && data.errors[0]?.message) || 'Registration failed';
+        setAuthError(errorMsg);
+        setIsLoading(false);
+        return { success: false, message: errorMsg };
       }
 
-      setToken(data.token);
-      setUser(data.user);
-      setIsLoading(false);
-      return { success: true, user: data.user };
-    } catch (err) {
-      console.warn('Backend server offline, using client-side mock registration:', err.message);
-      const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ name: userData.name, role: userData.role || 'Citizen' }))}.mock_sig`;
-      const newUser = {
-        id: `USR-${Math.floor(100 + Math.random() * 900)}`,
-        name: userData.name,
-        mobile: userData.mobile,
-        villageName: userData.villageName || 'Gram Panchayat Chandanpura',
-        wardNo: userData.wardNo || '1',
-        role: userData.role || 'Citizen',
-        aadhaar: userData.aadhaar || '1234-5678-9012',
-        rationCardNo: `MP-SEC-${Math.floor(100000 + Math.random() * 900000)}`,
-        landHoldingAcres: '2.0',
-        familyMembers: 3,
-      };
+      const payload = data.data || data;
+      const authToken = payload.token || data.token;
+      const userProfile = payload.user || data.user;
 
-      setToken(mockToken);
-      setUser(newUser);
+      setToken(authToken);
+      setUser(userProfile);
       setIsLoading(false);
-      return { success: true, user: newUser };
+      return { success: true, user: userProfile };
+    } catch (err) {
+      console.warn('Backend server offline during registration:', err.message);
+      const netError = 'Cannot connect to RuralSync server. Please ensure the backend is running on port 5001.';
+      setAuthError(netError);
+      setIsLoading(false);
+      return { success: false, message: netError };
     }
   };
 
   // Logout handler
   const logout = () => {
+    // Notify server to clear cookie if online
+    fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST' }).catch(() => {});
     setToken(null);
     setUser(null);
     localStorage.removeItem('ruralsync_token');

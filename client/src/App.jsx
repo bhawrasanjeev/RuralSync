@@ -6,7 +6,6 @@ import { Navbar } from './components/Navbar/Navbar';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { Header } from './components/Header/Header';
 import { Footer } from './components/Footer/Footer';
-import { AIAssistant } from './components/AIAssistant/AIAssistant';
 
 // Pages
 import { Dashboard } from './pages/Dashboard/Dashboard';
@@ -121,9 +120,6 @@ const AppContent = () => {
           <Footer onNavigate={handleNavigate} />
         </div>
       </div>
-
-      {/* Floating Voice & Text Gram Mitra AI Assistant */}
-      <AIAssistant />
     </div>
   );
 };

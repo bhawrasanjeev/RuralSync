@@ -14,12 +14,11 @@ cp .env.example .env
 
 | Variable | Default Value | Description |
 |---|---|---|
-| `PORT` | `5000` | Server listening port |
+| `PORT` | `5001` | Server listening port |
 | `NODE_ENV` | `development` | Node environment (`development` / `production`) |
 | `JWT_SECRET` | `ruralsync_jwt_secret_key_...` | Secret key for signing JWT tokens |
 | `JWT_EXPIRES_IN` | `7d` | Token validity duration |
-| `CORS_ORIGIN` | `http://localhost:3000` | Allowed CORS origin for React frontend |
-| `GEMINI_API_KEY` | *(Optional)* | Google Gemini AI Studio key for Gram Mitra Assistant |
+| `CLIENT_URL` | `http://localhost:3000` | Allowed CORS origin for React frontend |
 
 ---
 
@@ -35,7 +34,7 @@ cp .env.example .env
    ```bash
    npm start
    ```
-   The API will start running at **`http://localhost:5000`**.
+   The API will start running at **`http://localhost:5001`**.
 
 ---
 
@@ -66,9 +65,6 @@ cp .env.example .env
 
 ### 📊 Village Stats (`/api/stats`)
 - `GET /api/stats` - Village population, fund utilization, and resolution metrics
-
-### 🤖 AI Gram Mitra Assistant (`/api/ai`)
-- `POST /api/ai/chat` - Process citizen queries with Gemini API / Smart Rural Engine
 
 ### 🚨 Emergency Helplines (`/api/emergency`)
 - `GET /api/emergency` - Emergency contacts (Ambulance, Police, Kisan Call Center)

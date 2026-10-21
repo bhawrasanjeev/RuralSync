@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sun, MapPin, CloudSun, CloudRain, Wind, Compass, Sparkles } from 'lucide-react';
+import { API_BASE_URL } from '../../config/api';
 import './Header.css';
 
 export const Header = ({ currentPage }) => {
@@ -43,11 +44,14 @@ export const Header = ({ currentPage }) => {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-        const res = await fetch(`${API_BASE}/api/weather?city=Sehore`);
+        const res = await fetch(`${API_BASE_URL}/api/weather?city=Sehore`);
         if (res.ok) {
           const data = await res.json();
-          setWeather((prev) => ({ ...prev, ...data }));
+          setWeather((prev) => ({
+            ...prev,
+            ...data,
+            wind: data.wind !== undefined ? data.wind : (data.windSpeed !== undefined ? Math.round(data.windSpeed) : prev.wind),
+          }));
         }
       } catch (err) {
         console.warn('Weather fetch error:', err.message);

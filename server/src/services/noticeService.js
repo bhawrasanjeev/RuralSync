@@ -21,7 +21,10 @@ class NoticeService {
         ];
       }
 
-      return await Notice.find(filter).sort({ pinnedNotice: -1, createdAt: -1 });
+      const dbNotices = await Notice.find(filter).sort({ pinnedNotice: -1, createdAt: -1 });
+      if (dbNotices && dbNotices.length > 0) {
+        return dbNotices;
+      }
     }
 
     // In-memory fallback

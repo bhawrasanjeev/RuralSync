@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { mockEmergencyContacts } from '../../data/mockData';
 import { Modal } from '../../components/Modal/Modal';
 import {
@@ -16,6 +17,26 @@ import './Emergency.css';
 export const EmergencyPage = () => {
   const [contacts, setContacts] = useState(mockEmergencyContacts);
   const [sosTriggered, setSosTriggered] = useState(false);
+
+  // Fetch emergency helplines from backend API
+  useEffect(() => {
+    const fetchEmergency = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/emergency`);
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.data || data;
+          if (Array.isArray(list) && list.length > 0) {
+            setContacts(list);
+          }
+        }
+      } catch (err) {
+        console.warn('Backend emergency fetch failed, using fallback data:', err.message);
+      }
+    };
+
+    fetchEmergency();
+  }, []);
 
   const handleSosClick = () => {
     setSosTriggered(true);

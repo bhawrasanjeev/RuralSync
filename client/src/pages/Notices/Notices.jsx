@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { mockNotices } from '../../data/mockData';
 import { Modal } from '../../components/Modal/Modal';
 import {
@@ -39,8 +40,7 @@ export const NoticesPage = () => {
   const fetchNotices = async () => {
     try {
       setLoading(true);
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${API_BASE}/api/notices`);
+      const res = await fetch(`${API_BASE_URL}/api/notices`);
       if (res.ok) {
         const data = await res.json();
         const noticesList = data.data || data;
@@ -67,8 +67,7 @@ export const NoticesPage = () => {
     }
 
     try {
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${API_BASE}/api/notices`, {
+      const res = await fetch(`${API_BASE_URL}/api/notices`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -79,6 +78,12 @@ export const NoticesPage = () => {
       });
 
       const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || 'Failed to publish notice');
+        return;
+      }
+
       const createdItem = data.data || data;
 
       // Unshift to local state

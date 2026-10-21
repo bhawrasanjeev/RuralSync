@@ -31,7 +31,7 @@ const registerValidation = validate([
     .withMessage('Password must be at least 6 characters long'),
   body('role')
     .optional()
-    .isIn(['Citizen', 'Volunteer', 'Officer', 'Admin'])
+    .isIn(['Citizen', 'Volunteer', 'Officer', 'Admin', 'Ward Member', 'Sarpanch'])
     .withMessage('Invalid role specified'),
 ]);
 

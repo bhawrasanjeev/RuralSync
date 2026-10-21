@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { mockVillageStats } from '../../data/mockData';
 import {
   PieChart,
@@ -18,8 +19,29 @@ import {
 import './Reports.css';
 
 export const ReportsPage = () => {
+  const [villageStats, setVillageStats] = useState(mockVillageStats);
   const [selectedYear, setSelectedYear] = useState('2024-25');
   const [filterWard, setFilterWard] = useState('All');
+
+  // Fetch village statistics from backend API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/stats`);
+        if (res.ok) {
+          const data = await res.json();
+          const stats = data.data || data;
+          if (stats && stats.panchayatFundTotal) {
+            setVillageStats(stats);
+          }
+        }
+      } catch (err) {
+        console.warn('Backend stats fetch failed, using fallback data:', err.message);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   // Grants & Sources
   const fundSources = [
@@ -107,7 +129,7 @@ export const ReportsPage = () => {
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Sanctioned Fund</p>
-            <h3 className="text-2xl font-extrabold text-slate-900 mt-1">{mockVillageStats.panchayatFundTotal}</h3>
+            <h3 className="text-2xl font-extrabold text-slate-900 mt-1">{villageStats.panchayatFundTotal}</h3>
             <span className="inline-block mt-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
               15th Finance & State Grant
             </span>
@@ -120,7 +142,7 @@ export const ReportsPage = () => {
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Utilized Amount</p>
-            <h3 className="text-2xl font-extrabold text-blue-700 mt-1">{mockVillageStats.panchayatFundSpent}</h3>
+            <h3 className="text-2xl font-extrabold text-blue-700 mt-1">{villageStats.panchayatFundSpent}</h3>
             <span className="inline-block mt-1 text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
               70.3% Budget Execution Rate
             </span>
@@ -146,7 +168,7 @@ export const ReportsPage = () => {
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Audited Village Projects</p>
-            <h3 className="text-2xl font-extrabold text-purple-700 mt-1">{mockVillageStats.activeProjects} Active</h3>
+            <h3 className="text-2xl font-extrabold text-purple-700 mt-1">{villageStats.activeProjects} Active</h3>
             <span className="inline-block mt-1 text-[11px] font-semibold text-purple-800 bg-purple-50 px-2 py-0.5 rounded-md flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-purple-600" /> Geo-Tagged Audit
             </span>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { mockComplaints, mockSchemes, mockVillageStats } from '../../data/mockData';
 import { StatusBadge } from '../../components/StatusBadge/StatusBadge';
 import { StatCard } from '../../components/StatCard/StatCard';
@@ -20,7 +21,43 @@ import './Admin.css';
 export const AdminPage = () => {
   const [complaints, setComplaints] = useState(mockComplaints);
   const [schemes, setSchemes] = useState(mockSchemes);
+  const [villageStats, setVillageStats] = useState(mockVillageStats);
   const [activeTab, setActiveTab] = useState('grievances');
+
+  // Fetch live dashboard & module data from backend
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const [complaintsRes, schemesRes, statsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/complaints`),
+          fetch(`${API_BASE_URL}/api/schemes`),
+          fetch(`${API_BASE_URL}/api/stats`),
+        ]);
+
+        if (complaintsRes.ok) {
+          const data = await complaintsRes.json();
+          const list = data.data || data;
+          if (Array.isArray(list) && list.length > 0) setComplaints(list);
+        }
+
+        if (schemesRes.ok) {
+          const data = await schemesRes.json();
+          const list = data.data || data;
+          if (Array.isArray(list) && list.length > 0) setSchemes(list);
+        }
+
+        if (statsRes.ok) {
+          const data = await statsRes.json();
+          const stats = data.data || data;
+          if (stats && stats.panchayatFundTotal) setVillageStats(stats);
+        }
+      } catch (err) {
+        console.warn('Backend admin fetch failed, retaining default data:', err.message);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
 
   // Publish Notice Form State
   const [noticeTitle, setNoticeTitle] = useState('');
@@ -34,8 +71,25 @@ export const AdminPage = () => {
     );
   };
 
-  const handlePublishNotice = (e) => {
+  const handlePublishNotice = async (e) => {
     e.preventDefault();
+
+    try {
+      await fetch(`${API_BASE_URL}/api/notices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: noticeTitle,
+          category: noticeCat,
+          summary: noticeSummary,
+          department: 'Panchayat Administrative Cell',
+          date: new Date().toISOString().split('T')[0],
+        }),
+      });
+    } catch (err) {
+      console.warn('Backend notice publish failed:', err.message);
+    }
+
     setNoticePublished(true);
     setNoticeTitle('');
     setNoticeSummary('');
@@ -58,7 +112,7 @@ export const AdminPage = () => {
         <div className="flex items-center gap-3">
           <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700 text-xs">
             <span className="text-slate-400 block">Panchayat Fund Balance</span>
-            <strong className="text-base text-emerald-400 font-extrabold">{mockVillageStats.panchayatFundTotal}</strong>
+            <strong className="text-base text-emerald-400 font-extrabold">{villageStats.panchayatFundTotal}</strong>
           </div>
         </div>
       </div>
@@ -67,8 +121,8 @@ export const AdminPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           title="Total Panchayat Fund Allocated"
-          value={mockVillageStats.panchayatFundTotal}
-          subtitle={`Spent: ${mockVillageStats.panchayatFundSpent}`}
+          value={villageStats.panchayatFundTotal}
+          subtitle={`Spent: ${villageStats.panchayatFundSpent}`}
           icon={<DollarSign className="w-5 h-5" />}
           colorBg="bg-emerald-50 text-emerald-700"
         />
@@ -81,7 +135,7 @@ export const AdminPage = () => {
         />
         <StatCard
           title="Active Development Works"
-          value={mockVillageStats.activeProjects}
+          value={villageStats.activeProjects}
           subtitle="Roads, Water, Solar"
           icon={<Building className="w-5 h-5" />}
           colorBg="bg-blue-50 text-blue-700"

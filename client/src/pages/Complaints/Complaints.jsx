@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { mockComplaints } from '../../data/mockData';
 import { Modal } from '../../components/Modal/Modal';
 import { StatusBadge } from '../../components/StatusBadge/StatusBadge';
@@ -31,13 +32,34 @@ export const ComplaintsPage = () => {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('High');
 
+  // Fetch complaints from backend API
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/complaints`);
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.data || data;
+          if (Array.isArray(list) && list.length > 0) {
+            setComplaints(list);
+          }
+        }
+      } catch (err) {
+        console.warn('Backend complaints fetch failed, using fallback data:', err.message);
+      }
+    };
+
+    fetchComplaints();
+  }, []);
+
   const filteredComplaints = complaints.filter((c) => {
     if (filterTab === 'Active') return c.status !== 'Resolved';
     if (filterTab === 'Resolved') return c.status === 'Resolved';
     return true;
   });
 
-  const handleUpvote = (id) => {
+  const handleUpvote = async (id) => {
+    // Optimistic UI update
     setComplaints((prev) =>
       prev.map((c) => {
         if (c.id === id) {
@@ -45,16 +67,55 @@ export const ComplaintsPage = () => {
           return {
             ...c,
             userUpvoted,
-            upvotes: userUpvoted ? c.upvotes + 1 : c.upvotes - 1,
+            upvotes: userUpvoted ? c.upvotes + 1 : Math.max(0, c.upvotes - 1),
           };
         }
         return c;
       })
     );
+
+    try {
+      await fetch(`${API_BASE_URL}/api/complaints/${id}/upvote`, {
+        method: 'PUT',
+      });
+    } catch (err) {
+      console.warn('Backend upvote sync failed:', err.message);
+    }
   };
 
-  const handleCreateComplaint = (e) => {
+  const handleCreateComplaint = async (e) => {
     e.preventDefault();
+    const payload = {
+      title,
+      category,
+      description,
+      location: location || `Ward No. ${wardNo}, Chandanpura`,
+      wardNo,
+      priority,
+    };
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/complaints`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const createdItem = data.data || data;
+        setComplaints((prev) => [createdItem, ...prev]);
+        setNewComplaintModalOpen(false);
+        setTitle('');
+        setDescription('');
+        setLocation('');
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend complaint creation failed, saving locally:', err.message);
+    }
+
+    // Fallback local unshift if server unreachable
     const newId = `CMP-${Math.floor(1000 + Math.random() * 9000)}`;
     const newTicket = {
       id: newId,
@@ -88,7 +149,6 @@ export const ComplaintsPage = () => {
 
     setComplaints([newTicket, ...complaints]);
     setNewComplaintModalOpen(false);
-    // Reset
     setTitle('');
     setDescription('');
     setLocation('');

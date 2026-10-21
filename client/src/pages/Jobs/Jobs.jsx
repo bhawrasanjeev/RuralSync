@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { mockJobs } from '../../data/mockData';
 import { Modal } from '../../components/Modal/Modal';
 import {
@@ -26,6 +27,26 @@ export const JobsPage = () => {
   const [skillType, setSkillType] = useState('Tractor Operator');
   const [experience, setExperience] = useState('5 Years');
   const [mobile, setMobile] = useState('+91 98932 77102');
+
+  // Fetch jobs from backend API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/jobs`);
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.data || data;
+          if (Array.isArray(list) && list.length > 0) {
+            setJobs(list);
+          }
+        }
+      } catch (err) {
+        console.warn('Backend jobs fetch failed, using fallback data:', err.message);
+      }
+    };
+
+    fetchJobs();
+  }, []);
 
   const filteredJobs = jobs.filter((j) => {
     if (filterType === 'MGNREGA') return j.isMgnrega;
@@ -167,7 +188,19 @@ export const JobsPage = () => {
                   <p><strong>Requested Work Days:</strong> 15 Days</p>
                 </div>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    try {
+                      await fetch(`${API_BASE_URL}/api/jobs/apply`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          jobId: appliedJobModal.id,
+                          applicantName: 'Rameshwar Singh Patel',
+                        }),
+                      });
+                    } catch (err) {
+                      console.warn('Backend job demand sync failed:', err.message);
+                    }
                     alert("Form-6 Work Demand Receipt Generated! Panchayat Secretary notified.");
                     setAppliedJobModal(null);
                   }}
